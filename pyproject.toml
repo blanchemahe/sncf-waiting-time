@@ -1,0 +1,28 @@
+[project]
+name = "sncf-waiting-time"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "blanchemahe", email = "blanche.mahe@polytechnique.edu" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=3.0.6",
+    "streamlit>=1.64.0",
+]
+
+[project.scripts]
+sncf-waiting-time = "sncf_waiting_time:main"
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.10",
+]
