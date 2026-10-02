@@ -1,19 +1,16 @@
 [project]
 name = "sncf-waiting-time"
 version = "0.1.0"
-description = "Add your description here"
+description = "Streamlit app exploring platform waiting-time deviations on the SNCF Transilien network"
 readme = "README.md"
 authors = [
-    { name = "blanchemahe", email = "blanche.mahe@polytechnique.edu" }
+    { name = "Blanche Mahé" }
 ]
 requires-python = ">=3.12"
 dependencies = [
     "pandas>=3.0.6",
     "streamlit>=1.64.0",
 ]
-
-[project.scripts]
-sncf-waiting-time = "sncf_waiting_time:main"
 
 [build-system]
 requires = ["uv_build>=0.12.21,<0.13.0"]
