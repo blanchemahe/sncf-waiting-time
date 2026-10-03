@@ -51,6 +51,7 @@ page = st.navigation(
         st.Page("app_pages/overview.py", title="Overview", default=True),
         st.Page("app_pages/stations.py", title="Priority stations"),
         st.Page("app_pages/predictions.py", title="What a model would change"),
+        st.Page("app_pages/about.py", title="Sources and limits"),
     ]
 )
 
@@ -131,6 +132,7 @@ if selection.empty:
 scored, importance = get_evaluation()
 
 # --- Hand the selection over to the page and display it -------------------
+st.session_state["all_stops"] = data
 st.session_state["selection"] = selection
 st.session_state["threshold"] = threshold
 st.session_state["scored"] = apply_filters(scored)
