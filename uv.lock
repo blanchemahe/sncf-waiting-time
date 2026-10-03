@@ -1128,6 +1128,7 @@ name = "sncf-waiting-time"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "altair" },
     { name = "pandas" },
     { name = "streamlit" },
 ]
@@ -1142,6 +1143,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "altair", specifier = ">=6.3.0" },
     { name = "pandas", specifier = ">=3.0.6" },
     { name = "streamlit", specifier = ">=1.64.0" },
 ]
