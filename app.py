@@ -11,15 +11,35 @@ from sncf_waiting_time.filters import (
     filter_by_station,
     filter_by_stop_rank,
 )
+from sncf_waiting_time.model import (
+    group_importance,
+    load_model,
+    predict_gap,
+    score_predictions,
+    split_by_day,
+    station_usual_gap,
+)
 from sncf_waiting_time.summaries import DEFAULT_THRESHOLD
 
 DATA_DIR = Path(__file__).parent / "data"
+MODEL_PATH = Path(__file__).parent / "models" / "waiting_time.json"
 
 
 @st.cache_data
 def get_data() -> pd.DataFrame:
     """Load the train stops once and keep them in memory."""
     return load_data(DATA_DIR / "x_train.csv.gz", DATA_DIR / "y_train.csv.gz")
+
+
+@st.cache_data
+def get_evaluation() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Score the saved model once, on the days set aside from its training."""
+    training, test = split_by_day(get_data())
+    model = load_model(MODEL_PATH)
+    scored = score_predictions(
+        test, predict_gap(model, test), station_usual_gap(training)
+    )
+    return scored, group_importance(model)
 
 
 st.set_page_config(page_title="Platform waiting times", layout="wide")
@@ -30,6 +50,7 @@ page = st.navigation(
     [
         st.Page("app_pages/overview.py", title="Overview", default=True),
         st.Page("app_pages/stations.py", title="Priority stations"),
+        st.Page("app_pages/predictions.py", title="What a model would change"),
     ]
 )
 
@@ -92,16 +113,27 @@ if len(period) != 2:
     st.info("Pick a start date and an end date.")
     st.stop()
 
-selection = filter_by_date(data, period[0], period[1])
-selection = filter_by_stop_rank(selection, ranks[0], ranks[1])
-if stations:
-    selection = filter_by_station(selection, stations)
 
+def apply_filters(stops: pd.DataFrame) -> pd.DataFrame:
+    """Keep the train stops matching the choices made in the sidebar."""
+    kept = filter_by_date(stops, period[0], period[1])
+    kept = filter_by_stop_rank(kept, ranks[0], ranks[1])
+    if stations:
+        kept = filter_by_station(kept, stations)
+    return kept
+
+
+selection = apply_filters(data)
 if selection.empty:
     st.warning("No train stop matches these filters.")
     st.stop()
 
+scored, importance = get_evaluation()
+
 # --- Hand the selection over to the page and display it -------------------
 st.session_state["selection"] = selection
 st.session_state["threshold"] = threshold
+st.session_state["scored"] = apply_filters(scored)
+st.session_state["evaluation_days"] = (scored["date"].min(), scored["date"].max())
+st.session_state["importance"] = importance
 page.run()

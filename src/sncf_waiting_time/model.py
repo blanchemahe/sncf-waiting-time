@@ -22,6 +22,10 @@ PARAMETERS = {
     "tree_method": "hist",
     "seed": 0,
 }
+PREDICTABLE = "Predictable gap: correct the display"
+UNPREDICTABLE = "Unpredictable gap: look at operations"
+ACCURATE = "Screens already close to reality"
+MIN_ERROR_REDUCTION = 30.0
 
 
 def split_by_day(
@@ -190,3 +194,31 @@ def group_importance(model: xgb.Booster) -> pd.DataFrame:
         for group, gain in totals.items()
     ]
     return pd.DataFrame(shares).sort_values("share", ascending=False, ignore_index=True)
+
+
+def classify_stations(
+    by_station: pd.DataFrame,
+    typical_error: float,
+    min_reduction: float = MIN_ERROR_REDUCTION,
+) -> pd.DataFrame:
+    """
+    Tell apart the stations a model can fix from those it cannot.
+
+    A station whose screens are no worse than usual needs no action. Among
+    the others, the gap is predictable when the model removes a large part
+    of the error, and unpredictable otherwise.
+
+    :param by_station: one row per station, as returned by errors_by_station
+    :param typical_error: mean error of the screens over all stations
+    :param min_reduction: share of the error, in percent, the model must
+        remove for the gap to count as predictable
+    :return: the stations with their error reduction in percent and profile
+    """
+    display_error = by_station["display_error"]
+    reduction = 100 * (1 - by_station["model_error"] / display_error)
+    reduction = reduction.where(display_error > 0, 0.0)
+
+    profile = pd.Series(UNPREDICTABLE, index=by_station.index)
+    profile = profile.where(reduction < min_reduction, PREDICTABLE)
+    profile = profile.where(display_error > typical_error, ACCURATE)
+    return by_station.assign(error_reduction=reduction, profile=profile)
