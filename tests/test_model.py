@@ -7,6 +7,10 @@ import pytest
 
 from sncf_waiting_time.features import FEATURE_GROUPS
 from sncf_waiting_time.model import (
+    ACCURATE,
+    PREDICTABLE,
+    UNPREDICTABLE,
+    classify_stations,
     errors_by_station,
     group_importance,
     load_model,
@@ -134,3 +138,34 @@ def test_group_importance_covers_every_family(model):
     importance = group_importance(model)
     assert set(importance["group"]) == set(FEATURE_GROUPS)
     assert importance["share"].sum() == pytest.approx(100)
+
+
+@pytest.fixture
+def by_station():
+    """Build the errors of four stations, one per situation."""
+    return pd.DataFrame(
+        {
+            "gare": ["AAA", "BBB", "CCC", "DDD"],
+            "display_error": [2.0, 1.5, 0.5, 0.0],
+            "model_error": [0.5, 1.4, 0.4, 0.0],
+        }
+    )
+
+
+def test_classify_stations_measures_the_error_reduction(by_station):
+    result = classify_stations(by_station, typical_error=1.0).set_index("gare")
+    assert result.loc["AAA", "error_reduction"] == pytest.approx(75.0)
+    assert result.loc["CCC", "error_reduction"] == pytest.approx(20.0)
+
+
+def test_classify_stations_handles_a_station_without_error(by_station):
+    result = classify_stations(by_station, typical_error=1.0).set_index("gare")
+    assert result.loc["DDD", "error_reduction"] == 0.0
+
+
+def test_classify_stations_gives_each_station_a_profile(by_station):
+    result = classify_stations(by_station, typical_error=1.0).set_index("gare")
+    assert result.loc["AAA", "profile"] == PREDICTABLE
+    assert result.loc["BBB", "profile"] == UNPREDICTABLE
+    assert result.loc["CCC", "profile"] == ACCURATE
+    assert result.loc["DDD", "profile"] == ACCURATE
