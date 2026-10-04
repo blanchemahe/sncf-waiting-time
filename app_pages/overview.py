@@ -5,6 +5,7 @@ import streamlit as st
 
 from sncf_waiting_time.summaries import daily_summary, key_figures, weekday_summary
 
+MAIN_COLOUR = st.get_option("theme.primaryColor")
 WEEKDAYS = [
     "Monday",
     "Tuesday",
@@ -17,10 +18,10 @@ WEEKDAYS = [
 
 selection = st.session_state["selection"]
 threshold = st.session_state["threshold"]
+minutes = "minute" if threshold == 1 else "minutes"
 
 # --- Introduction ---------------------------------------------------------
 st.title("Platform waiting times: where and when the displays get it wrong")
-st.markdown("**Use the filters on the left to explore the data yourself.**")
 st.markdown(
     "This app supports the strategic programme launched by SNCF's leadership "
     "team to improve the experience of **passengers on their way to work**. "
@@ -32,7 +33,8 @@ st.markdown(
     "the gap is the widest.\n\n"
     "The objective is to provide your teams with a clear view of the data "
     "SNCF already holds, and to explore solutions to make the waiting times on "
-    "the screens more reliable and to prioritise stations for the next works."
+    "the screens more reliable and to prioritise stations for the next works.\n\n"
+    ":green[**Use the filters on the left to explore the data yourself.**]"
 )
 
 # --- Headline figures -----------------------------------------------------
@@ -42,34 +44,55 @@ figures = key_figures(selection, threshold)
 column_1, column_2, column_3, column_4 = st.columns(4)
 column_1.metric("Train stops analysed", f"{figures['stops']:,}")
 column_2.metric(
-    f"Waits at least {threshold} min longer than announced",
+    "Waits too long\\*",
     f"{figures['long_wait_share']:.1f} %",
+    help=f"Share of stops where passengers waited at least {threshold} "
+    f"{minutes} more than announced.",
 )
 column_3.metric(
-    "Stops where the announced wait was exact",
+    "Announced wait exact",
     f"{figures['exact_share']:.1f} %",
+    help="Share of stops where the actual wait matched the announced wait.",
 )
 column_4.metric(
     "Average gap",
     f"{figures['mean_deviation']:.2f} min",
     help="Negative: on average, passengers wait longer than announced.",
 )
-st.caption(
-    f"A wait is counted as too long when passengers wait at least {threshold} "
-    "minute(s) more than the screen announced. You can change this threshold "
-    "in the panel on the left."
+st.markdown(
+    f"\\* A wait is too long when passengers wait at least "
+    f":orange[**{threshold} {minutes}**] more than the screen announced. "
+    f":orange[**You choose this threshold with the first filter on the left.**]"
 )
 
 # --- Differences between days ---------------------------------------------
 st.header("Are some days worse than others?")
 
 st.subheader("Day by day")
+daily = daily_summary(selection, threshold)
+best_day = daily.loc[daily["long_wait_share"].idxmin()]
+worst_day = daily.loc[daily["long_wait_share"].idxmax()]
+
+if len(daily) == 1:
+    st.markdown(
+        f"**Only one day is selected**: {worst_day['long_wait_share']:.1f} % "
+        "of its waits are too long. Widen the period to compare days."
+    )
+else:
+    st.markdown(
+        "**Some days are far worse than others**: the share of waits that are "
+        f"too long goes from {best_day['long_wait_share']:.1f} % on "
+        f"{best_day['date']:%d/%m/%Y} to {worst_day['long_wait_share']:.1f} % "
+        f"on {worst_day['date']:%d/%m/%Y}."
+    )
+
 st.bar_chart(
-    daily_summary(selection, threshold),
+    daily,
     x="date",
     y="long_wait_share",
     x_label="Day",
     y_label="Share of waits that are too long (%)",
+    color=MAIN_COLOUR,
 )
 st.caption(
     "The data covers working days outside July and August: weekends and the "
@@ -89,17 +112,22 @@ if gap < 1:
         f"long differs by only {gap:.1f} point between the best and the worst "
         "day."
     )
+    expander_label = (
+        "We found no pattern, so this chart is folded away. Open it to check "
+        "for yourself"
+    )
 else:
     st.markdown(
         f"**{busiest['day']} is the worst day**: "
         f"{busiest['long_wait_share']:.1f} % of waits are too long, against "
         f"{calmest['long_wait_share']:.1f} % on {calmest['day']}."
     )
+    expander_label = "Open the chart to compare the days of the week"
 
-with st.expander("See the detail for each day of the week"):
+with st.expander(expander_label):
     weekday_chart = (
         alt.Chart(weekdays)
-        .mark_bar()
+        .mark_bar(color=MAIN_COLOUR)
         .encode(
             x=alt.X("day:N", sort=None, title="Day of the week"),
             y=alt.Y("long_wait_share:Q", title="Share of waits that are too long (%)"),
@@ -113,3 +141,12 @@ with st.expander("See the detail for each day of the week"):
         )
     )
     st.altair_chart(weekday_chart)
+
+# --- Link to the next page ------------------------------------------------
+st.divider()
+st.markdown(
+    "**What comes next.** The calendar explains little: the bad days are not "
+    "tied to a day of the week. The next page looks at **where** the gap "
+    "occurs, station by station."
+)
+st.page_link("app_pages/stations.py", label="Go to Priority stations →")

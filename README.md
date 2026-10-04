@@ -162,21 +162,12 @@ Each row is one train stopping at one station on one day. The measure is the gap
 5. **The model is a short-term tool.** It corrects the announced wait for a train two stations away. It does not forecast which stations will go wrong later.
 6. **The app shows where the screens are wrong, not why.**
 
-## Differences with the original project
-
-The analysis and the model come from a machine learning project that reached a mean absolute error of 0.6555 on the challenge leaderboard with a blend of four models. This repository simplifies it, as its goal is a working and readable app rather than the best score:
-
-- a single XGBoost model instead of a blend of two XGBoost and two CatBoost models;
-- the station encoded as one categorical variable instead of one column per station;
-- 300 trees instead of up to 5,000 with early stopping, so that training takes seconds;
-- an evaluation on the 18 most recent days instead of a cross-validation grouped by day. The two scores are therefore not directly comparable.
-
 ## Contributing
 
 Each change follows the same path: an issue, a branch created from the issue, a pull request, and a merge once the CI passes.
 
 ## Credits and licence
 
-The original analysis and model were built by **Blanche Mahé, Pauline Perroton and Oliver Smith**. This app, its tests, its CI and its Docker image were built by Blanche Mahé for the course *Tooling for the Data Scientist*.
+The analysis and the model come from a group project in machine learning, on the same data challenge. This app, its tests, its CI and its Docker image were built by Blanche Mahé for the course *Tooling for the Data Scientist*. The model used here is a single XGBoost model, simpler than the one of the original project.
 
 The code is released under the [MIT licence](LICENSE). The data remains under the licence of its publisher.

@@ -16,6 +16,7 @@ RUN uv sync --locked --no-dev --no-install-project
 COPY src ./src
 COPY app.py ./
 COPY app_pages ./app_pages
+COPY .streamlit ./.streamlit
 COPY data ./data
 COPY models ./models
 RUN uv sync --locked --no-dev
