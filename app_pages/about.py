@@ -68,8 +68,10 @@ st.markdown(
 st.header("How was this built?")
 st.markdown(
     "The analysis and the model come from a group project in machine "
-    "learning, on the same data challenge. The model shown here is a single "
-    "XGBoost model, simpler than the one of that project.\n\n"
+    "learning, on the same data challenge. That project blended four models "
+    "to climb the leaderboard of the challenge. The model shown here is a "
+    "single XGBoost model: it trains in seconds, is easier to explain, and has the best predictive power on its own ("
+    "the blend marginal improvement on the leaderboard score was less than 1 %).\n\n"
     "This app, its tests and its packaging were built by Blanche Mahé for "
     "the course *Tooling for the Data Scientist*. The code, the tests and "
     f"the instructions to run the app are in the [GitHub repository]({REPOSITORY})."
