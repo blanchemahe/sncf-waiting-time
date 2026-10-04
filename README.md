@@ -6,8 +6,7 @@ A Streamlit app that compares the waiting time announced on platform screens wit
 
 > **This is a student project.** The business context used in the app, an SNCF strategic programme and its teams, is a fictional scenario written for a course. The app is not an SNCF product. The data and the results are real.
 
-<!-- Screenshot of the app: add docs/overview.png, then uncomment the next line -->
-<!-- ![Overview page of the app](docs/overview.png) -->
+![Overview page of the app](docs/overview.png)
 
 The app has four pages:
 
