@@ -43,6 +43,21 @@ def get_evaluation() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 st.set_page_config(page_title="Platform waiting times", layout="wide")
+st.markdown(
+    """
+    <style>
+    h1, h2, h3 { color: #E05206 !important; }
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 { color: #FFFFFF !important; }
+    section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
+        color: #FFFFFF !important;
+        opacity: 1 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 data = get_data()
 
 # --- Navigation: the pages of the app -------------------------------------
@@ -62,6 +77,17 @@ st.sidebar.caption(
     "Every figure and chart on the page follows your choices."
 )
 
+threshold = st.sidebar.slider(
+    "From how many extra minutes is a wait too long?",
+    min_value=1,
+    max_value=5,
+    value=DEFAULT_THRESHOLD,
+)
+st.sidebar.caption(
+    f"*Suggested: {DEFAULT_THRESHOLD} minutes, a gap passengers notice, "
+    "reached at about one stop in ten.*"
+)
+
 first_day = data["date"].min().date()
 last_day = data["date"].max().date()
 period = st.sidebar.date_input(
@@ -78,9 +104,8 @@ stations = st.sidebar.multiselect(
     placeholder="All stations",
 )
 st.sidebar.caption(
-    "Stations are anonymised: each three-letter code stands for a real "
-    "station, but the list of names was not shared with us. Ask the "
-    "Transilien data owners for the matching names."
+    "*Three-letter codes stand for real stations whose names were not "
+    "shared. If you need them, ask the Transilien data owners.*"
 )
 
 lowest_rank = int(data["arret"].min())
@@ -92,22 +117,12 @@ ranks = st.sidebar.slider(
     value=(lowest_rank, highest_rank),
 )
 st.sidebar.caption(
-    f"The position is the rank of the stop on the route of the train: "
-    f"{lowest_rank} is its {lowest_rank}th stop. Keep the low ranks to look "
-    "at the start of the routes, the high ranks to look at their end."
+    f"*Rank of the stop on the route of the train: {lowest_rank} is its "
+    f"{lowest_rank}th stop.*"
 )
 
-threshold = st.sidebar.slider(
-    "From how many extra minutes is a wait too long?",
-    min_value=1,
-    max_value=5,
-    value=DEFAULT_THRESHOLD,
-)
-st.sidebar.caption(
-    f"We suggest {DEFAULT_THRESHOLD} minutes: a gap passengers notice on the "
-    "platform, reached at about one stop in ten. Change it to match your own "
-    "service standard."
-)
+st.sidebar.divider()
+st.sidebar.caption("Student project. Not an SNCF product.")
 
 # --- Apply the filters ----------------------------------------------------
 if len(period) != 2:
